@@ -14,7 +14,7 @@ class Cell:
         self.col: int = col
         self.state: State = State.BLANK
 
-    def __str__(self):
+    def __repr__(self):
         return f'{self.row}, {self.col}: {self.state.name}'
 
     def get_state_str(self) -> str:
@@ -48,10 +48,14 @@ class Board:
         self.cols: int = cols
         self.row_rules: list[list[int]] = row_rules
         self.col_rules: list[list[int]] = col_rules
-        self.layout: list[list[Cell]] = [[Cell(row, col) for col in range(self.cols)] for row in range(self.rows)]
+        self._layout: list[list[Cell]] = [[Cell(row, col) for col in range(self.cols)] for row in range(self.rows)]
 
-    def __str__(self):
-        return f'{self.rows} x {self.cols}'
+    def get_rows(self) -> list[list[Cell]]:
+        return self._layout
+
+    def get_cols(self) -> list[list[Cell]]:
+        return [[self._layout[row][col] for row in range(self.rows)] for col in range(self.cols)]
+
 
     def print_board(self):
         print("+", end='')
@@ -61,7 +65,7 @@ class Board:
         for row in range(self.rows):
             print("| ", end='')
             for col in range(self.cols):
-                print(self.layout[row][col].get_state_str(), end='')
+                print(self._layout[row][col].get_state_str(), end='')
                 print(" ", end='')
             print("| ", end='')
             print(*self.row_rules[row], sep=' ')
@@ -76,10 +80,15 @@ class Board:
 
 if __name__ == '__main__':
     board = Board(3, 3, [[1, 1], [2], []], [[], [1, 1], [3]])
-    board.layout[0][0].shade()
-    board.layout[1][1].unshade()
+    board.get_rows()[0][0].shade()
+    board.get_cols()[1][2].unshade()
     try:
-        board.layout[0][0].shade()
+        board.get_rows()[0][0].shade()
     except NotBlankError as e:
         print(e)
     board.print_board()
+
+    print()
+    print(*board.get_rows(), sep='\n')
+    print()
+    print(*board.get_cols(), sep='\n')

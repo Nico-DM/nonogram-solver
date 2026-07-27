@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/nonogram-solver.iml" filepath="$PROJECT_DIR$/.idea/nonogram-solver.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/nonogram-solver@1.iml" filepath="$PROJECT_DIR$/.idea/nonogram-solver@1.iml" />
     </modules>
   </component>
 </project>
