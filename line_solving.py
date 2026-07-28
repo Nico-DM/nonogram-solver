@@ -32,8 +32,8 @@ def is_between_same_blocks(cell_pos: int, start_crowd: list[int | None], end_cro
     return start_left_neighbor is not None and end_left_neighbor is not None and start_left_neighbor == end_left_neighbor
 
 
-def line_solving(row: list[Cell], row_rule: list[int]) -> bool:
-    changed: bool = False
+def line_solving(row: list[Cell], row_rule: list[int]) -> list[Cell]:
+    changed: list[Cell] = []
     start_crowd: list[int | None] = [None for _ in row]
 
     cell_num = 0
@@ -59,17 +59,17 @@ def line_solving(row: list[Cell], row_rule: list[int]) -> bool:
 
     for pos in range(len(row)):
         if start_crowd[pos] is not None and end_crowd[pos] is not None and start_crowd[pos] == end_crowd[pos]:
-            changed = True
+            changed.append(row[pos])
             row[pos].shade()
         if start_crowd[pos] is None and end_crowd[pos] is None and is_between_same_blocks(pos, start_crowd, end_crowd):
-            changed = True
+            changed.append(row[pos])
             row[pos].unshade()
 
     return changed
 
 
 if __name__ == '__main__':
-    board = Board(2, 10, [[4,3,1], [4,3]], [])
+    board = Board([[4,3,1], [4,3]], [[], [], [], [], [], [], [], [], [], []])
     print(f"Row 0 (full): {line_solving(board.get_rows()[0], board.row_rules[0])}")
     print(f"Row 1 (not full): {line_solving(board.get_rows()[1], board.row_rules[1])}")
     board.print_board()

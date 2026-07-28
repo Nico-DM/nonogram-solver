@@ -43,43 +43,50 @@ class NotBlankError(RuntimeError):
 
 
 class Board:
-    def __init__(self, rows: int, cols: int, row_rules: list[list[int]], col_rules: list[list[int]]):
-        self.rows: int = rows
-        self.cols: int = cols
+    def __init__(self, row_rules: list[list[int]], col_rules: list[list[int]]):
         self.row_rules: list[list[int]] = row_rules
         self.col_rules: list[list[int]] = col_rules
-        self._layout: list[list[Cell]] = [[Cell(row, col) for col in range(self.cols)] for row in range(self.rows)]
+        self._layout: list[list[Cell]] = [[Cell(row, col) for col in range(len(self.col_rules))] for row in range(len(self.row_rules))]
 
     def get_rows(self) -> list[list[Cell]]:
         return self._layout
 
+    def get_rows_with_rules(self) -> list[tuple[list[Cell], list[int]]]:
+        return list(zip(self.get_rows(), self.row_rules))
+
     def get_cols(self) -> list[list[Cell]]:
-        return [[self._layout[row][col] for row in range(self.rows)] for col in range(self.cols)]
+        return [[self._layout[row][col] for row in range(len(self.row_rules))] for col in range(len(self.col_rules))]
+
+    def get_cols_with_rules(self) -> list[tuple[list[Cell], list[int]]]:
+        return list(zip(self.get_cols(), self.col_rules))
 
 
     def print_board(self):
         print("+", end='')
-        print("-" * (self.cols * 2 + 1), end='')
+        print("-" * (len(self.col_rules) * 3 + 2), end='')
         print("+")
 
-        for row in range(self.rows):
-            print("| ", end='')
-            for col in range(self.cols):
+        for row in range(len(self.row_rules)):
+            print("|  ", end='')
+            for col in range(len(self.col_rules)):
                 print(self._layout[row][col].get_state_str(), end='')
-                print(" ", end='')
+                print("  ", end='')
             print("| ", end='')
             print(*self.row_rules[row], sep=' ')
 
         print("+", end='')
-        print("-" * (self.cols * 2 + 1), end='')
+        print("-" * (len(self.col_rules) * 3 + 2), end='')
         print("+")
 
         for line in itertools.zip_longest(*self.col_rules, fillvalue=' '):
-            print(*line, sep=' ')
+            print(" ", end='')
+            for num in line:
+                print(f"{num:>3}", end='')
+            print()
 
 
 if __name__ == '__main__':
-    board = Board(3, 3, [[1, 1], [2], []], [[], [1, 1], [3]])
+    board = Board([[1, 1], [2], []], [[3], [1, 1], [10]])
     board.get_rows()[0][0].shade()
     board.get_cols()[1][2].unshade()
     try:
