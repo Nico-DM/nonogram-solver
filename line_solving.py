@@ -1,75 +1,80 @@
-from board import Cell, Board
+from board import Cell, State
 
 
-def is_between_same_blocks(cell_pos: int, start_crowd: list[int | None], end_crowd: list[int | None]) -> bool:
-    start_right_neighbor = None
-    for i in range(cell_pos + 1, len(start_crowd)):
-        if start_crowd[i] is not None:
-            start_right_neighbor = start_crowd[i]
-            break
+def generate_line_solutions(cells: list[Cell], clues: list[int]) -> list[list[State]]:
+    solutions: list[list[State]] = []
 
-    end_right_neighbor = None
-    for i in range(cell_pos + 1, len(end_crowd)):
-        if end_crowd[i] is not None:
-            end_right_neighbor = end_crowd[i]
-            break
+    def can_place(line: list[State], pos: int, size: int) -> bool:
+        start, end = pos, pos + size
 
-    if start_right_neighbor is not None and end_right_neighbor is not None and start_right_neighbor != end_right_neighbor:
-        return False
+        if len(line) < pos + size:
+            return False
 
-    start_left_neighbor = None
-    for i in range(cell_pos - 1, 0, -1):
-        if start_crowd[i] is not None:
-            start_left_neighbor = start_crowd[i]
-            break
+        if any([cell.state == State.UNSHADED for cell in cells[start:end]]):
+            return False
 
-    end_left_neighbor = None
-    for i in range(cell_pos - 1, 0, -1):
-        if end_crowd[i] is not None:
-            end_left_neighbor = end_crowd[i]
-            break
+        if end < len(cells) - 1 and cells[end].state == State.SHADED:
+            return False
 
-    return start_left_neighbor is not None and end_left_neighbor is not None and start_left_neighbor == end_left_neighbor
+        if start != 0 and cells[start - 1].state == State.SHADED:
+            return False
 
+        return True
 
-def line_solving(row: list[Cell], row_rule: list[int]) -> list[Cell]:
-    changed: list[Cell] = []
-    start_crowd: list[int | None] = [None for _ in row]
+    def place_block(line: list[State], pos: int, size: int) -> list[State]:
+        new_line: list[State] = line[:]
+        for idx in range(pos, pos + size):
+            new_line[idx] = State.SHADED
 
-    cell_num = 0
-    for clue in row_rule:
-        i = 0
-        while i < clue:
-            start_crowd[cell_num] = clue
-            i += 1
-            cell_num += 1
-        cell_num += 1
+        return new_line
 
-    leftover: int = len(row) - cell_num + 1
-    end_crowd: list[int | None] = [None for _ in row]
+    def backtrack(clue_idx: int, start: int, line: list[State]):
+        if clue_idx == len(clues):
+            solutions.append(line)
+            return
 
-    cell_num = leftover
-    for clue in row_rule:
-        i = 0
-        while i < clue:
-            end_crowd[cell_num] = clue
-            i += 1
-            cell_num += 1
-        cell_num += 1
+        size = clues[clue_idx]
 
-    for pos in range(len(row)):
-        if start_crowd[pos] is not None and end_crowd[pos] is not None and start_crowd[pos] == end_crowd[pos]:
-            changed.append(row[pos])
-            row[pos].shade()
-        if start_crowd[pos] is None and end_crowd[pos] is None and is_between_same_blocks(pos, start_crowd, end_crowd):
-            changed.append(row[pos])
-            row[pos].unshade()
+        end = len(line) - size - (sum(clues[clue_idx + 1:]) + len(clues[clue_idx + 1:]) - 1)
 
-    return changed
+        for pos in range(start, end):
+            if can_place(line, pos, size):
+                new_line = place_block(line, pos, size)
+                backtrack(clue_idx + 1, pos + size + 1, new_line)
+
+    backtrack(0, 0, [State.UNSHADED] * len(cells))
+    return solutions
 
 
-if __name__ == '__main__':
-    board = Board([[4,3,1], [4,3]], [[], [], [], [], [], [], [], [], [], []])
-    print(f"Row 0 (full): {line_solving(board.get_rows()[0], board.row_rules[0])}")
-    print(f"Row 1 (not full): {line_solving(board.get_rows()[1], board.row_rules[1])}")
-    board.print_board()
+def intersect_solutions(solutions: list[list[State]]) -> list[State]:
+    new_states: list[State] = [State.BLANK] * len(solutions[0])
+
+    for pos in range(len(solutions[0])):
+        state: State = solutions[0][pos]
+        if all(solution[pos] == state for solution in solutions):
+            new_states[pos] = state
+
+    return new_states
+
+
+def update(cells: list[Cell], new_states: list[State]) -> list[Cell]:
+    updated_cells: list[Cell] = []
+
+    for cell, state in zip(cells, new_states):
+        if cell.state == State.BLANK:
+            if state == State.SHADED:
+                cell.shade()
+                updated_cells.append(cell)
+            if state == State.UNSHADED:
+                cell.unshade()
+                updated_cells.append(cell)
+
+    return updated_cells
+
+
+def solve_line(cells: list[Cell], clues: list[int]) -> list[Cell]:
+    solutions = generate_line_solutions(cells, clues)
+    if solutions:
+        new_states = intersect_solutions(solutions)
+        return update(cells, new_states)
+    return []
