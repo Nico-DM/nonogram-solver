@@ -1,12 +1,15 @@
+import sys
+
 from board import Board, Cell, State
 from line_solving import solve_line
+from parser import parse_file
 
 
 def main():
-    board = Board(
-                  [[2], [2,1], [1,1], [3], [1,1], [1,1], [2], [1,1], [1,2], [2]],
-                  [[2,1], [2,1,3], [7], [1,3], [2,1]]
-                  )
+    filename = "examples/skid.txt"
+    if len(sys.argv) >= 2:
+        filename = sys.argv[1]
+    board = Board(*parse_file(filename))
 
     job_list = board.get_rows_with_rules() + board.get_cols_with_rules()
 

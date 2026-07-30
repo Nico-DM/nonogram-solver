@@ -24,7 +24,7 @@ class Cell:
             case State.SHADED:
                 return '■'
             case State.UNSHADED:
-                return 'x'
+                return '.'
 
     def shade(self):
         if self.state != State.BLANK:

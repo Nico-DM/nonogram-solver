@@ -4,6 +4,21 @@ from board import Cell, State
 def generate_line_solutions(cells: list[Cell], clues: list[int]) -> list[list[State]]:
     solutions: list[list[State]] = []
 
+    def follows_clues(line: list[State]) -> bool:
+        test_line = [State.SHADED if state == State.SHADED or cell.state == State.SHADED else State.UNSHADED for state, cell in zip(line, cells)]
+        pos = 0
+
+        for clue in clues:
+            while test_line[pos] == State.UNSHADED:
+                pos += 1
+            for i in range(clue):
+                if test_line[pos] != State.SHADED:
+                    return False
+                test_line.pop(pos)
+
+        return all(state == State.UNSHADED for state in test_line)
+
+
     def can_place(line: list[State], pos: int, size: int) -> bool:
         start, end = pos, pos + size
 
@@ -30,7 +45,8 @@ def generate_line_solutions(cells: list[Cell], clues: list[int]) -> list[list[St
 
     def backtrack(clue_idx: int, start: int, line: list[State]):
         if clue_idx == len(clues):
-            solutions.append(line)
+            if follows_clues(line):
+                solutions.append(line)
             return
 
         size = clues[clue_idx]
