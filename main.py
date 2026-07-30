@@ -6,7 +6,7 @@ from parser import parse_file
 
 
 def main():
-    filename = "examples/skid.txt"
+    filename = "examples/dancer.txt"
     if len(sys.argv) >= 2:
         filename = sys.argv[1]
     board = Board(*parse_file(filename))

@@ -89,6 +89,8 @@ def update(cells: list[Cell], new_states: list[State]) -> list[Cell]:
 
 
 def solve_line(cells: list[Cell], clues: list[int]) -> list[Cell]:
+    if not clues or clues == [0]:
+        return update(cells, [State.UNSHADED] * len(cells))
     solutions = generate_line_solutions(cells, clues)
     if solutions:
         new_states = intersect_solutions(solutions)
